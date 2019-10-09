@@ -1,0 +1,60 @@
+from  numpy import *
+from matplotlib import pyplot as plt
+import cv2
+import sys
+
+set_printoptions(threshold=sys.maxsize)
+iter=10
+K=16
+img=cv2.imread('bird_small.png',1)
+img=img.astype(float64)
+img=img/255
+X=reshape(img,((size(img,0))*(size(img,1)),3))
+centroids=array(zeros((K, size(X, 1))))
+centroids=centroids.astype(float64)
+OP=unique(X,axis=0)
+randidx=random.permutation(size(OP, 0))
+centroids=OP[randidx[0:K],:]
+jb=array(zeros((size(X,0),K)))
+jb=jb.astype(float64)
+idx=array(zeros((size(X,0),1)))
+idx=idx.astype(uint64)
+
+for j in range(10):
+
+    for i in range(K):
+        jb[:,i]=sum(power((centroids[i,:]-X),2),axis=1)
+    
+    for i in range(size(X,0)):
+        idx[i,:]=amin(where(jb[i,:]==amin(jb[i,:],axis=0)))
+      
+    for i in range(K):  
+        sel=where(idx==i)
+        centroids[i,:]=mean(X[sel[0],:],0)
+
+
+X_recovered = centroids[idx,:]*255
+X_recovered=X_recovered.astype(uint8)
+X_recovered=reshape(X_recovered,((size(img,0)),(size(img,1)),3))
+X_recovered=cv2.cvtColor(X_recovered,cv2.COLOR_BGR2RGB)
+img=img*255
+img=img.astype(uint8)
+img=cv2.cvtColor(img,cv2.COLOR_BGR2RGB)
+
+fig, (ax1,ax2) = plt.subplots(1, 2, figsize=(8, 4))
+
+ax1.imshow(img)
+ax1.set_title('Original')
+ax1.grid(False)
+
+ax2.imshow(X_recovered)
+ax2.set_title('Compressed, with %d colors' % K)
+ax2.grid(False)
+
+plt.show()
+
+
+
+
+
+    
